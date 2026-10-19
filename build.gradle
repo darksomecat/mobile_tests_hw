@@ -1,0 +1,50 @@
+plugins {
+    id 'java-library'
+    id 'io.qameta.allure' version '4.3.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+def aspectjWeaverVersion = "1.9.25",
+    selenideVersion = "7.19.0",
+    restAssuredVersion = "6.2.0",
+    allureAdaptersVersion = "2.35.5",
+    allureReportVersion = "2.46.1",
+    junitVersion = "5.14.4",
+    slf4jVersion = "2.0.20",
+    appiumVersion = "11.0.0"
+
+allure {
+    version.set(allureReportVersion)
+    adapter {
+        allureJavaVersion.set(allureAdaptersVersion)
+        aspectjWeaver.set(true)
+        aspectjVersion.set(aspectjWeaverVersion)
+    }
+}
+
+dependencies {
+    testImplementation(
+            "org.aspectj:aspectjweaver:$aspectjWeaverVersion",
+            "com.codeborne:selenide:$selenideVersion",
+            "io.qameta.allure:allure-selenide:$allureAdaptersVersion",
+            "io.appium:java-client:$appiumVersion",
+            "io.rest-assured:rest-assured:$restAssuredVersion",
+            "org.junit.jupiter:junit-jupiter:$junitVersion",
+            "org.slf4j:slf4j-simple:$slf4jVersion"
+    )
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+
+    testLogging {
+        lifecycle {
+            events "started", "skipped", "failed", "standard_error", "standard_out"
+            exceptionFormat = "short"
+        }
+    }
+}
