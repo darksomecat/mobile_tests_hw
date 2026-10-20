@@ -1,56 +1,65 @@
 package helpers;
 
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
 import io.qameta.allure.Attachment;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import static com.codeborne.selenide.Selenide.sessionId;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 
 public class Attach {
+
     @Attachment(value = "{attachName}", type = "image/png")
     public static byte[] screenshotAs(String attachName) {
         return ((TakesScreenshot) getWebDriver()).getScreenshotAs(OutputType.BYTES);
     }
-    @Attachment(value = "Page sourse", type = "text/plan") //"text/html" чтобы отображалась страница
+
+    @Attachment(value = "Page source", type = "text/plain", fileExtension = ".xml")
     public static byte[] pageSource() {
         return getWebDriver().getPageSource().getBytes(StandardCharsets.UTF_8);
     }
 
-    @Attachment(value = "{attachName}", type = "text/plan")
+    @Attachment(value = "{attachName}", type = "text/plain", fileExtension = ".txt")
     public static String attachAsText(String attachName, String message) {
         return message;
     }
-    public static void browserConsoleLogs(){
-        if ("firefox".equalsIgnoreCase(Configuration.browser)) {
-            return;
-        }
 
-        attachAsText(
-                "Browser console logs",
-                String.join("\n", Selenide.getWebDriverLogs("browser"))
-        );
-    }
     @Attachment(value = "Video", type = "text/html", fileExtension = ".html")
     public static String addVideo(String sessionId) {
-        return "<html><body><video width='100%' height='100%' controls autoplay><source src='"
-                + getVideoUrl()
-                + "' type='video/mp4'></video></body></html>";
+        String videoUrl = Browserstack.videoUrl(sessionId);
+        String sessionUrl = Browserstack.publicUrl(sessionId);
+        String video = videoUrl == null || videoUrl.isBlank()
+                ? "<p>Video is not ready yet.</p>"
+                : "<video width='100%' height='100%' controls autoplay><source src='"
+                + videoUrl
+                + "' type='video/mp4'></video>";
+        String link = sessionUrl == null || sessionUrl.isBlank()
+                ? ""
+                : "<p><a href='" + sessionUrl + "'>Open session in BrowserStack</a></p>";
+        return "<html><body>" + video + link + "</body></html>";
     }
 
-    public static URL getVideoUrl() {
-        String videoUrl = "https://selenoid.qa.guru/video/" + sessionId() + ".mp4";
+    @Attachment(value = "Text logs", type = "text/plain", fileExtension = ".log")
+    public static String textLogs(String sessionId) {
+        return Browserstack.textLogs(sessionId);
+    }
+
+    @Attachment(value = "Appium logs", type = "text/plain", fileExtension = ".log")
+    public static String appiumLogs(String sessionId) {
+        return Browserstack.appiumLogs(sessionId);
+    }
+
+    @Attachment(value = "Device logs", type = "text/plain", fileExtension = ".log")
+    public static String deviceLogs(String sessionId) {
+        return Browserstack.deviceLogs(sessionId);
+    }
+
+    public static void safely(String name, Runnable attachment) {
         try {
-            return new URL(videoUrl);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+            attachment.run();
+        } catch (Throwable error) {
+            attachAsText(name + " error", error.toString());
         }
-        return null;
     }
 }
