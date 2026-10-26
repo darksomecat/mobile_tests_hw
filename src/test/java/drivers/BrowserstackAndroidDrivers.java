@@ -22,6 +22,8 @@ public class BrowserstackAndroidDrivers implements WebDriverProvider {
 
         caps.setCapability("device", Config.browserStack.androidDeviceName());
         caps.setCapability("os_version", Config.browserStack.androidOsVersion());
+        caps.setCapability("language", "en");
+        caps.setCapability("locale", "US");
 
         caps.setCapability("project", Config.browserStack.projectName());
         caps.setCapability("build", Config.browserStack.buildName());

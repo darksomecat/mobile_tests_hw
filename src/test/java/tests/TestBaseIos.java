@@ -4,6 +4,7 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import drivers.BrowserstackIosDriver;
+import drivers.DriverFactory;
 import helpers.Attach;
 import io.qameta.allure.selenide.AllureSelenide;
 import org.junit.jupiter.api.AfterEach;
@@ -12,10 +13,13 @@ import org.junit.jupiter.api.BeforeEach;
 
 import static com.codeborne.selenide.Selenide.closeWebDriver;
 import static com.codeborne.selenide.Selenide.open;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class TestBaseIos {
     @BeforeAll
     static void beforeAll() {
+        assumeTrue(DriverFactory.isBrowserstack(),
+                "iOS-тесты запускаются только с -DdeviceHost=browserstack");
         Configuration.browser = BrowserstackIosDriver.class.getName();
         Configuration.browserSize = null;
         Configuration.timeout = 30000;
