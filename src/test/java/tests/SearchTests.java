@@ -1,41 +1,52 @@
 package tests;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.*;
-import static io.appium.java_client.AppiumBy.*;
+import static io.appium.java_client.AppiumBy.androidUIAutomator;
 import static io.qameta.allure.Allure.step;
+import static locators.WikipediaLocators.SEARCH;
+import static locators.WikipediaLocators.SEARCH_INPUT;
+import static locators.WikipediaLocators.SEARCH_RESULT;
 
+@DisplayName("Поиск")
 public class SearchTests extends TestBase {
-    @Test
-    void successfulSearchTest() {
-        step("Type search", () -> {
-            $(accessibilityId("Search Wikipedia")).click();
-            $(id("org.wikipedia.alpha:id/search_src_text")).sendKeys("Appium");
-        });
-        step("Verify content found", () ->
-                $$(id("org.wikipedia.alpha:id/page_list_item_title"))
-                        .shouldHave(sizeGreaterThan(0)));
+
+    @BeforeEach
+    void openSearchScreen() {
+        skipOnboardingIfPresent();
     }
 
     @Test
-    void searchSelenideTest() {
-        step("Type search", () -> {
-            $(accessibilityId("Search Wikipedia")).click();
-            $(id("org.wikipedia.alpha:id/search_src_text")).sendKeys("selenide");
+    @DisplayName("Успешный поиск")
+    void successfulSearchTest() {
+        step("Ввести поисковый запрос", () -> {
+            $(SEARCH).click();
+            $(SEARCH_INPUT).sendKeys("Appium");
         });
-        step("Verify content found", () ->
-                $(id("org.wikipedia.alpha:id/page_list_item_title")).shouldHave(text("Selenide")));
-        step("Open article", () ->
-                $(id("org.wikipedia.alpha:id/page_list_item_title")).click());
+        step("Проверить, что результаты найдены", () ->
+                $$(SEARCH_RESULT).shouldHave(sizeGreaterThan(0)));
+    }
 
-        step("Verify article title", () -> {
-            $x("//*[@resource-id='org.wikipedia.alpha:id/page_toolbar']//*[@text='Selenide']")
-                    .shouldBe(visible);
+    @Test
+    @DisplayName("Поиск и открытие статьи Selenide")
+    void searchSelenideTest() {
+        step("Ввести поисковый запрос", () -> {
+            $(SEARCH).click();
+            $(SEARCH_INPUT).sendKeys("selenide");
         });
+        step("Проверить, что статья найдена", () ->
+                $(SEARCH_RESULT).shouldHave(text("Selenide")));
+        step("Открыть статью", () ->
+                $(SEARCH_RESULT).click());
+
+        step("Проверить заголовок статьи", () ->
+                $(androidUIAutomator("new UiSelector().text(\"Selenide\")")).shouldBe(visible));
 
     }
 }
